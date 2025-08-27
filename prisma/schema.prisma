@@ -1,0 +1,231 @@
+// // This is your Prisma schema file,
+// // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "mongodb"
+//   url      = env("DATABASE_URL")
+// }
+
+// // model User {
+// //   id         String    @id @default(auto()) @map("_id") @db.ObjectId
+// //   name       String
+// //   email      String    @unique
+// //   password   String
+// //   department String? // Opsiyonel: kullanıcı bir departmana ait olabilir
+// //   role       String? // Opsiyonel: "admin", "user", "manager" gibi roller
+// //   createdAt  DateTime  @default(now())
+// //   requests   Request[] // Kullanıcının yaptığı talepler
+// //   comments   Comment[] @relation("UserComments") // Kullanıcının yaptığı yorumlar
+
+// //   employeeRequests Request[] @relation("EmployeeRequests")
+// //   managerDecisions Request[] @relation("ManagerDecisions")
+// // }
+
+// model User {
+//   id         String   @id @default(auto()) @map("_id") @db.ObjectId
+//   name       String
+//   email      String   @unique
+//   password   String
+//   department String?
+//   role       String?
+//   createdAt  DateTime @default(now())
+//   isActive   Boolean  @default(true) // ✅ yeni alan
+
+//   // Talepler ve ilişkiler
+//   requests         Request[] @relation("Request")
+//   employeeRequests Request[] @relation("EmployeeRequests")
+//   managerDecisions Request[] @relation("ManagerDecisions")
+//   comments         Comment[] @relation("UserComments")
+//   Request          Request[]
+// }
+
+// model Product {
+//   id        String    @id @default(auto()) @map("_id") @db.ObjectId
+//   name      String
+//   sku       String    @unique
+//   stock     Int       @default(0)
+//   price     Float
+//   requests  Request[] // Talep edilen ürünler
+//   createdAt DateTime  @default(now())
+//   updatedAt DateTime  @updatedAt
+// }
+
+// model Request {
+//   id            String   @id @default(auto()) @map("_id") @db.ObjectId
+//   itemName      String
+//   category      String
+//   brand         String?
+//   quantity      Int
+//   priority      String
+//   urgency       String?
+//   deliveryDate  DateTime
+//   description   String
+//   department    String
+//   estimatedCost Float?
+//   productLink   String?
+//   location      String?
+
+//   // Süreç yönetimi
+//   status       String    @default("pending") // pending | approved | rejected | completed
+//   decisionDate DateTime?
+//   approvalNote String?
+//   finalCost    Float?
+//   attachments  String[] // dosya linkleri
+
+//   // Zaman damgaları
+//   createdAt DateTime @default(now())
+
+//   // İlişkiler
+//   employeeId String
+//   employee   User   @relation("EmployeeRequests", fields: [employeeId], references: [id])
+
+//   managerId String?
+//   manager   User?   @relation("ManagerDecisions", fields: [managerId], references: [id])
+
+//   productId String?  @db.ObjectId
+//   product   Product? @relation(fields: [productId], references: [id])
+
+//   comments Comment[]
+//   User     User?     @relation(fields: [userId], references: [id])
+//   userId   String?   @db.ObjectId
+
+//   User User[] @relation("Requests")
+// }
+
+// model Comment {
+//   id        String   @id @default(cuid()) @map("_id")
+//   request   Request  @relation(fields: [requestId], references: [id])
+//   requestId String
+//   by        User     @relation("UserComments", fields: [byId], references: [id])
+//   byId      String
+//   comment   String
+//   createdAt DateTime @default(now())
+// }
+
+// enum Role {
+//   EMPLOYEE
+//   MANAGER
+//   WAREHOUSE
+//   ADMIN
+// }
+
+// enum RequestStatus {
+//   PENDING
+//   APPROVED
+//   REJECTED
+//   PROCURED
+//   COMPLETED
+// }
+
+// Prisma schema for MongoDB with soft delete for Users
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  email      String   @unique
+  password   String
+  department String?
+  role       String?
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true) // Kullanıcı aktif mi?
+
+  // Talepler ve ilişkiler
+  employeeRequests Request[] @relation("EmployeeRequests") // Talep eden
+  managerDecisions Request[] @relation("ManagerDecisions") // Onaylayan
+  comments         Comment[] @relation("UserComments") // Yorumlar
+}
+
+model Product {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  sku       String    @unique
+  stock     Int       @default(0)
+  price     Float
+  requests  Request[] // Talep edilen ürünler
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Request {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  itemName      String
+  category      String
+  brand         String?
+  quantity      Int
+  priority      String
+  urgency       String?
+  deliveryDate  DateTime
+  description   String
+  department    String
+  estimatedCost Float?
+  productLink   String?
+  location      String?
+
+  status       String    @default("pending")
+  decisionDate DateTime?
+  approvalNote String?
+  finalCost    Float?
+  attachments  String[]
+  createdAt    DateTime  @default(now())
+
+  employeeId String? // opsiyonel
+  employee   User?   @relation("EmployeeRequests", fields: [employeeId], references: [id])
+
+  managerId String?
+  manager   User?   @relation("ManagerDecisions", fields: [managerId], references: [id])
+
+  productId String?  @db.ObjectId
+  product   Product? @relation(fields: [productId], references: [id])
+
+  comments Comment[]
+}
+
+model Comment {
+  id        String   @id @default(cuid()) @map("_id")
+  request   Request  @relation(fields: [requestId], references: [id])
+  requestId String
+  by        User     @relation("UserComments", fields: [byId], references: [id])
+  byId      String
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+model AdminSettings {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteName          String
+  supportEmail      String
+  allowRegistration Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+enum Role {
+  EMPLOYEE
+  MANAGER
+  WAREHOUSE
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCURED
+  COMPLETED
+}
