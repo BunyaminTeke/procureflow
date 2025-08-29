@@ -5,13 +5,10 @@ import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
     const [requests, setRequests] = useState<any[]>([]);
+    const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
-
-
-    const [currentUser, setCurrentUser] = useState<any>(null);
-
 
     useEffect(() => {
         const token = document.cookie.split("token=")[1];
@@ -30,12 +27,9 @@ export default function AdminDashboard() {
                 if (!res.ok) {
                     throw new Error("Yetkilendirme hatası");
                 }
-
-                const user = await res.json();
-                setCurrentUser(user);
-
-
-                if (user.role.toLowerCase() !== "admin") {
+                const userData = await res.json();
+                setUser(userData);
+                if (userData.role.toLowerCase() !== "admin") {
                     router.push("/login");
                     return;
                 }
@@ -45,6 +39,7 @@ export default function AdminDashboard() {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const data = await reqRes.json();
+                setRequests(data);
                 setRequests(data);
             } catch (err: any) {
                 setError(err.message);
@@ -129,11 +124,11 @@ export default function AdminDashboard() {
                 <div className="absolute bottom-0 w-64 p-4 border-t border-gray-800">
                     <div className="flex items-center space-x-3">
                         <div className="h-10 w-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold">A</span>
+                            <span className="text-white font-bold">{user?.name ? user.name.charAt(0).toUpperCase() : "?"}</span>
                         </div>
                         <div>
-                            <p className="text-sm font-medium">{currentUser?.name || currentUser?.email}</p>
-                            <p className="text-xs text-gray-400">{currentUser?.role}</p>
+                            <p className="text-sm font-medium">{user?.name || "Admin Kullanıcı"}</p>
+                            <p className="text-xs text-gray-400">{user?.role || "Yönetici"}</p>
                         </div>
                     </div>
                 </div>
@@ -316,8 +311,7 @@ export default function AdminDashboard() {
                                                 <button className="px-4 py-2 text-sm bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-300">
                                                     Onayla
                                                 </button>
-                                                <button
-                                                    className="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-300">
+                                                <button className="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-300">
                                                     Reddet
                                                 </button>
                                             </div>
@@ -359,3 +353,4 @@ export default function AdminDashboard() {
         </div>
     );
 }
+

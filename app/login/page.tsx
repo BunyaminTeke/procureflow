@@ -2,17 +2,28 @@
 
 import { useState } from "react";
 import Head from "next/head";
-import Link from "next/link"
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [showPassword, setShowPassword] = useState(false);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+
+
+    useEffect(() => {
+        const msg = searchParams.get("msg");
+        if (msg) {
+            setMessage(msg === "SifreDegisti" ? "Şifreniz başarıyla değiştirildi!" : msg);
+        }
+    }, [searchParams]);
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -149,7 +160,7 @@ export default function LoginPage() {
                                 </div>
                                 <div className="text-sm">
                                     <a
-                                        href="#"
+                                        href="forgot-password"
                                         className="font-medium text-[#2B83B6] hover:text-[#1F72A7] transition"
                                     >
                                         Şifremi unuttum?

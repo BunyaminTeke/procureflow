@@ -146,9 +146,10 @@ model User {
   isActive   Boolean  @default(true) // Kullanıcı aktif mi?
 
   // Talepler ve ilişkiler
-  employeeRequests Request[] @relation("EmployeeRequests") // Talep eden
-  managerDecisions Request[] @relation("ManagerDecisions") // Onaylayan
-  comments         Comment[] @relation("UserComments") // Yorumlar
+  employeeRequests Request[]       @relation("EmployeeRequests") // Talep eden
+  managerDecisions Request[]       @relation("ManagerDecisions") // Onaylayan
+  comments         Comment[]       @relation("UserComments") // Yorumlar
+  PasswordReset    PasswordReset[]
 }
 
 model Product {
@@ -194,6 +195,13 @@ model Request {
   product   Product? @relation(fields: [productId], references: [id])
 
   comments Comment[]
+}
+
+model PasswordReset {
+  userId    String   @id @map("_id")
+  user      User     @relation(fields: [userId], references: [id])
+  code      String
+  expiresAt DateTime
 }
 
 model Comment {
