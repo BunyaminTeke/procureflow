@@ -1,9 +1,11 @@
-// app/register/page.tsx
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // ✅ yönlendirme için
 
 export default function RegisterPage() {
+    const router = useRouter();
+
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -12,11 +14,17 @@ export default function RegisterPage() {
     const [department, setDepartment] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!acceptedTerms) {
+            setMessage("Kayıt olabilmek için kullanım koşullarını kabul etmelisiniz!");
+            return;
+        }
 
         if (password !== confirmPassword) {
             setMessage("Şifreler uyuşmuyor!");
@@ -42,8 +50,11 @@ export default function RegisterPage() {
 
             const data = await res.json();
 
-            if (res.ok) {
-                setMessage("Kayıt başarılı!");
+            if (res.ok && data.success) {
+                setMessage("Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...");
+                setTimeout(() => {
+                    router.push("/login"); // ✅ login sayfasına yönlendir
+                }, 1500);
             } else {
                 setMessage(data.error || "Bir hata oluştu");
             }
@@ -220,6 +231,8 @@ export default function RegisterPage() {
                                     id="terms"
                                     name="terms"
                                     type="checkbox"
+                                    checked={acceptedTerms}
+                                    onChange={(e) => setAcceptedTerms(e.target.checked)}
                                     className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
                                 />
                             </div>
